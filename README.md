@@ -21,7 +21,9 @@ All map config files will be in `addons/counterstrikesharp/configs/plugins/spawn
 ---
 ## Future Plans
 [ ] Ability to remove custom spawns
+
 [ ] Show current spawns and added spawns
+
 [ ] Ability to remove all default spawns
 
 ---
