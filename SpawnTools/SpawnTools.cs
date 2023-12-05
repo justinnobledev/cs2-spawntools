@@ -17,8 +17,8 @@ namespace SpawnTools;
 public class SpawnTools : BasePlugin
 {
     public override string ModuleName { get; } = "Spawn Tools";
-    public override string ModuleVersion { get; } = "1.0";
-    public override string ModuleAuthor { get; } = "https://insanitygaming.net";
+    public override string ModuleVersion { get; } = "1.1";
+    public override string ModuleAuthor { get; } = "Retro - https://insanitygaming.net";
     public override string ModuleDescription { get; } = "Allows you to dynamically create spawn points per map";
 
     private string _configPath = "";
