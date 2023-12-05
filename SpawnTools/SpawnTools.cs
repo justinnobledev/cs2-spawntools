@@ -130,7 +130,7 @@ public class SpawnTools : BasePlugin
             _spawnPoints.Add(point);
         }
 
-        if (arg.Equals("ct") || arg.Equals("both"))
+        if (arg.Equals("t") || arg.Equals("both"))
         {
             var point = new CustomSpawnPoint
             {
