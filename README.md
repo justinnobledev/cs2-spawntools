@@ -14,7 +14,7 @@ All map config files will be in `addons/counterstrikesharp/configs/plugins/spawn
 ---
 ## Installation
 
-* Navigate to [releases](https://github.com/justinnobledev/cs2-spawntools/releases) and download the latest stable
+* Navigate to [releases](https://github.com/justinnobledev/cs2-spawntools/releases/latest) and download the latest stable
 * Extract the zip file to `game/csgo` and it will install to the correct paths
 * Give the admins you want to have access the permission `@spawntools/add`
 
