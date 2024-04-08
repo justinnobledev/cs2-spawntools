@@ -31,4 +31,10 @@ All map config files will be in `addons/counterstrikesharp/configs/plugins/spawn
 ```
 1.0
 Initital plugin release
+
+1.1
+Fixed an issue with creating T spawns
+
+1.2
+Added ability to delete default spawnpoints.
 ```
