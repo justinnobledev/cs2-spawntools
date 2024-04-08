@@ -35,12 +35,29 @@ public class SpawnTools : BasePlugin
         public string Angel { get; set; }
     }
 
-    private List<CustomSpawnPoint> _spawnPoints = new()!;
+    private class Options
+    {
+        public bool DeleteDefaultSpawns { get; set; } = false;
+    }
+
+    private class Config
+    {
+        public List<CustomSpawnPoint> SpawnPoints { get; set; }
+        public Options Options { get; set; }
+    }
+    private Config? _config;
 
     public override void Load(bool hotReload)
     {
         RegisterEventHandler<EventRoundStart>(OnRoundStart);
         RegisterListener<Listeners.OnMapStart>(OnMapStart);
+        RegisterListener<Listeners.OnEntitySpawned>(entity =>
+        {
+            if (_config is {Options.DeleteDefaultSpawns: false}) return;
+            if (entity is not SpawnPoint) return;
+            
+            Server.NextFrame(entity.Remove);
+        });
         _wasHotReload = hotReload;
         if(hotReload)
             OnMapStart(Server.MapName);
@@ -64,7 +81,7 @@ public class SpawnTools : BasePlugin
 
     private async void OnMapStart(string mapName)
     {
-        _spawnPoints.Clear();
+        _config = null;
         _configPath =
             Path.Combine(ModuleDirectory, $"../../configs/plugins/spawntools/{Server.MapName.ToLower()}.json");
         
@@ -74,16 +91,25 @@ public class SpawnTools : BasePlugin
         try
         {
             var jsonString = await File.ReadAllTextAsync(_configPath);
-            var points = JsonSerializer.Deserialize<List<CustomSpawnPoint>>(jsonString);
-            if (points == null)
-            {
-                _spawnPoints = new List<CustomSpawnPoint>();
-                return;
-            }
-            _spawnPoints = points;
+            var config = JsonSerializer.Deserialize<Config>(jsonString);
+            _config = config;
         }
         catch(Exception e)
         {
+            try
+            {
+                var jsonString = await File.ReadAllTextAsync(_configPath);
+                var points = JsonSerializer.Deserialize<List<CustomSpawnPoint>>(jsonString);
+                _config = new Config
+                {
+                    Options = new Options(),
+                    SpawnPoints = points ?? new List<CustomSpawnPoint>()
+                };
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
             Console.WriteLine(e);
         }
 
@@ -127,7 +153,7 @@ public class SpawnTools : BasePlugin
                 Origin = VectorToString(new Vector3(origin.X, origin.Y, origin.Z)),
                 Angel = VectorToString(new Vector3(angel.X, angel.Y, angel.Z))
             };
-            _spawnPoints.Add(point);
+            _config?.SpawnPoints.Add(point);
         }
 
         if (arg.Equals("t") || arg.Equals("both"))
@@ -138,19 +164,20 @@ public class SpawnTools : BasePlugin
                 Origin = VectorToString(new Vector3(origin.X, origin.Y, origin.Z)),
                 Angel = VectorToString(new Vector3(angel.X, angel.Y, angel.Z))
             };
-            _spawnPoints.Add(point);
+            _config?.SpawnPoints.Add(point);
         }
-        var jsonString = JsonSerializer.Serialize(_spawnPoints);
+        var jsonString = JsonSerializer.Serialize(_config);
         File.WriteAllText(_configPath, jsonString);
         player.PrintToChat($" {ChatColors.LightRed}[SpawnTools]{ChatColors.Default} Added {(arg.Equals("ct") ? ChatColors.Blue : ChatColors.LightRed)}{arg}{ChatColors.Default} spawn point");
     }
 
     private HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
-        Console.WriteLine($"Round started {_spawnPoints.Count}");
+        Console.WriteLine($"Round started {_config?.SpawnPoints.Count ?? 0}");
         var noVel = new Vector(0f, 0f, 0f);
         var spawn = 0;
-        foreach (var spawnPoint in _spawnPoints)
+        if (_config?.SpawnPoints == null) return HookResult.Continue;
+        foreach (var spawnPoint in _config?.SpawnPoints!)
         {
             SpawnPoint? entity;
             if(spawnPoint.Team == CsTeam.Terrorist)
@@ -168,7 +195,7 @@ public class SpawnTools : BasePlugin
         }
 
         Logger.LogInformation(
-            $"Created a total of {spawn} out of {_spawnPoints.Count}");
+            $"Created a total of {spawn} out of {_config.SpawnPoints.Count}");
         return HookResult.Continue;
     }
 }
